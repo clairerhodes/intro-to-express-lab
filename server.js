@@ -6,9 +6,7 @@ const app = express();
 
 // set up port that express app listens for requests on
 const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Listening on port: ${PORT}`);
-});
+
 
 
 
@@ -49,18 +47,16 @@ Functionality: If a valid number is provided, respond with a random whole number
 For example, a request to /roll/16 might respond with “You rolled a 14.”
 */
 // use url: localhost:3000/roll
-app.get(`/roll/:number`, (req, res) => {
+
+app.get('/roll/:number', (req, res) => {
     const number = req.params.number;
-    if (typeOf number !== 'number'){ // if not a number, print
-        return('You must specify a number');
+    const num = parseInt(number, 10); // only allows whole numbers
+    const rolledNum = Math.floor(Math.random() * (num + 1)); // randomly generate number between given number and 0; num + 1 tells you dice > 0
+    if (isNaN(num)){ // if not a number, print this statement
+        return res.send('You must specify a number');
     }
-    else { // if it is a number, do this
-        answer = 0
-        return(answer);
-    }
-})
-
-
+    res.send(`You rolled a ${rolledNum}`); // print random number if number is entered in URL
+});
 
 
 
@@ -94,6 +90,24 @@ const collectibles = [
     { name: 'vintage 1970s yogurt SOLD AS-IS', price: 0.99 }
   ];
 
+app.get('/collectibles/:index', (req, res) => {
+    const index = parseInt(req.params.index, 10); // only allow whole numbers
+    const collect = collectibles[index];
+    if (!collectibles[index]){ // if user types item that is not in collectibles array
+        return res.send('this item is not yet in stock. Check back soon!');
+    }
+    res.send(`The ${collect.name} can be yours for just $${collect.price}!`);
+});
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -117,3 +131,34 @@ const shoes = [
     { name: "Jet Boots", price: 1000, type: "boot" },
     { name: "Fifty-Inch Heels", price: 175, type: "heel" }
 ];
+
+app.get('/shoes', (req, res) => {
+    const {'min-price': minPrice,  'max-price': maxPrice, type} = req.query;
+
+    let filtered = shoes;
+// used chatgpt to get syntax for filter function
+    if (minPrice) {
+        filtered = filtered.filter(shoe => shoe.price <= parseFloat(minPrice));
+    }
+    if (maxPrice) {
+        filtered = filtered.filter(shoe => shoe.price <= parseFloat(maxPrice));
+    }
+    if (type) {
+        filtered = filtered.filter(shoe => shoe.type.toLowerCase() === type.toLowerCase())
+    }
+    if (filtered.length === 0) {
+        return res.send("No shoes match your criteria.");
+    }
+    res.json(filtered);
+})
+
+
+
+
+
+
+
+
+app.listen(PORT, () => {
+    console.log(`Listening on port: ${PORT}`);
+});
